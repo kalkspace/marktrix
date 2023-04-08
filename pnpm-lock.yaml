@@ -4,6 +4,9 @@ dependencies:
   '@monaco-editor/react':
     specifier: ^4.4.6
     version: 4.4.6(monaco-editor@0.37.1)(react-dom@18.2.0)(react@18.2.0)
+  lib0:
+    specifier: ^0.2.73
+    version: 0.2.73
   matrix-crdt:
     specifier: 0.2.1-alpha.1
     version: 0.2.1-alpha.1(lib0@0.2.73)(matrix-js-sdk@24.0.0)(y-protocols@1.0.5)(yjs@13.5.52)

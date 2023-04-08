@@ -3,36 +3,22 @@ import Editor, { OnMount } from "@monaco-editor/react";
 import { useParams } from "react-router-dom";
 import { Doc as YDoc, Text as YText } from "yjs";
 import { MonacoBinding } from "y-monaco";
-import { MatrixProvider } from "matrix-crdt";
 import { useClientContext } from "./App";
+import { MatrixProvider } from "./provider";
 
 export const Pad: React.FC<{ roomId: string }> = ({ roomId }) => {
-  const changeHandler = useCallback(
-    (value: string | undefined, ev: unknown) => {
-      console.log("content changed:", { value, ev });
-    },
-    []
-  );
-
   const [yText, setYText] = useState<YText | null>(null);
 
   const client = useClientContext();
   // todo: does it race when `roomId` changes?
   useEffect(() => {
     const doc = new YDoc();
-    const provider = new MatrixProvider(doc, client, {
-      type: "id",
-      id: roomId,
-    });
+    const provider = new MatrixProvider(doc, client, roomId);
 
-    provider.onDocumentAvailable((e: unknown) => {
-      const text = doc.getText("monaco");
-      setYText(text);
-    });
-    provider.initialize();
+    setYText(doc.getText("monaco"));
 
     return () => {
-      // todo: clean up
+      provider.destroy();
     };
   }, [client, roomId]);
 
@@ -67,7 +53,6 @@ export const Pad: React.FC<{ roomId: string }> = ({ roomId }) => {
       <Editor
         defaultLanguage="markdown"
         onMount={mountHandler}
-        onChange={changeHandler}
         options={{
           minimap: {
             enabled: false,
