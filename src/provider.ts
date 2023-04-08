@@ -62,12 +62,12 @@ export class MatrixProvider {
       });
 
       // get backscroll
-      let currentEnd = null;
+      let currentEnd: string | undefined;
       const updates: Uint8Array[] = [];
       while (true) {
         const messages = await client.createMessagesRequest(
           roomId,
-          currentEnd,
+          currentEnd ?? null,
           undefined,
           Direction.Forward,
           filter
