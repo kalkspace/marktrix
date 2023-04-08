@@ -57,6 +57,7 @@ export const Pad: React.FC<{ roomId: string }> = ({ roomId }) => {
           minimap: {
             enabled: false,
           },
+          wordWrap: "on",
         }}
       />
     </div>
