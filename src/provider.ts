@@ -1,6 +1,6 @@
 import {
   ClientEvent,
-  EventType,
+  Direction,
   MatrixClient,
   MatrixEvent,
 } from "matrix-js-sdk";
@@ -60,6 +60,40 @@ export class MatrixProvider {
           },
         },
       });
+
+      // get backscroll
+      let currentEnd = null;
+      const updates: Uint8Array[] = [];
+      while (true) {
+        const messages = await client.createMessagesRequest(
+          roomId,
+          currentEnd,
+          undefined,
+          Direction.Forward,
+          filter
+        );
+        for (const event of messages.chunk) {
+          if (event.type != EVENT_TYPE_UPDATE) {
+            continue;
+          }
+          const { update } = event.content as EventPayload;
+          if (typeof update !== "string") {
+            continue;
+          }
+          const decoded = await fromBase64(update);
+          updates.push(decoded);
+        }
+
+        if (!messages.end) {
+          break;
+        }
+        currentEnd = messages.end;
+      }
+      doc.transact((transaction) => {
+        for (const update of updates) {
+          applyUpdate(doc, update, transaction);
+        }
+      }, this);
 
       await client.startClient({ filter, lazyLoadMembers: true });
       await new Promise<void>((resolve) => {
