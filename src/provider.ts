@@ -121,6 +121,8 @@ export class MatrixProvider {
     const updates = mergeUpdates(this.currentBatch);
     this.currentBatch = [];
     const updateEncoded: string = await toBase64(updates);
+    // todo: error handling
+    // retry batch if sending failed
     const { event_id } = await this.client.sendEvent(
       this.roomId,
       EVENT_TYPE_UPDATE,

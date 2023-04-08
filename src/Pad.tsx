@@ -32,11 +32,7 @@ export const Pad: React.FC<{ roomId: string }> = ({ roomId }) => {
       if (!editorModel || !yText) {
         return;
       }
-      const monacoBinding = new MonacoBinding(
-        yText,
-        editorModel,
-        new Set([editor])
-      );
+      new MonacoBinding(yText, editorModel, new Set([editor]));
     },
     [yText]
   );

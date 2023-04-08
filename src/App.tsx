@@ -1,7 +1,6 @@
 import { createContext, useContext, useState } from "react";
 import { ICreateClientOpts } from "matrix-js-sdk";
 import { Login } from "./Login";
-import { RoomList } from "matrix-js-sdk/lib/crypto/RoomList";
 import { RoomListing } from "./RoomListing";
 import { createBrowserRouter, RouterProvider } from "react-router-dom";
 
