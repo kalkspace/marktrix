@@ -1,6 +1,5 @@
 import React, { FormEvent, useCallback, useEffect, useState } from "react";
-import { useClientContext } from "./App";
-import { AutoDiscovery, MatrixClient, createClient } from "matrix-js-sdk";
+import { AutoDiscovery, ICreateClientOpts, createClient } from "matrix-js-sdk";
 
 interface SessionResumptionDetails {
   baseUrl: string;
@@ -11,7 +10,7 @@ interface SessionResumptionDetails {
 const SESSION_RESUMPTION_KEY = "marktrix.session";
 
 export const Login: React.FC<{
-  onLoginSuccess: (client: MatrixClient) => void;
+  onLoginSuccess: (clientOpts: ICreateClientOpts) => void;
 }> = ({ onLoginSuccess }) => {
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
@@ -29,11 +28,8 @@ export const Login: React.FC<{
             userId,
           }: Partial<SessionResumptionDetails> = JSON.parse(resumedSession);
           if (accessToken && baseUrl && userId) {
-            const client = createClient({ baseUrl, userId });
-            client.setAccessToken(accessToken);
-            await client.startClient({ initialSyncLimit: 10 });
             setLoginError(null);
-            onLoginSuccess(client);
+            onLoginSuccess({ baseUrl, userId, accessToken });
             return;
           }
         } catch (e) {
@@ -67,15 +63,16 @@ export const Login: React.FC<{
           await client.startClient({ initialSyncLimit: 10 });
 
           // persist to localstorage
+          const accessToken = client.getAccessToken() as string;
           const session: SessionResumptionDetails = {
             baseUrl,
-            accessToken: client.getAccessToken() as string,
+            accessToken,
             userId: client.getUserId() as string,
           };
           localStorage.setItem(SESSION_RESUMPTION_KEY, JSON.stringify(session));
 
           setLoginError(null);
-          onLoginSuccess(client);
+          onLoginSuccess(session);
         } catch (e) {
           console.error("login failed", e);
           setLoginError(e);

@@ -1,5 +1,5 @@
-import { createContext, useContext, useEffect, useState } from "react";
-import { ClientEvent, MatrixClient } from "matrix-js-sdk";
+import { createContext, useContext, useState } from "react";
+import { ICreateClientOpts } from "matrix-js-sdk";
 import { Login } from "./Login";
 import { RoomList } from "matrix-js-sdk/lib/crypto/RoomList";
 import { RoomListing } from "./RoomListing";
@@ -8,17 +8,16 @@ import { createBrowserRouter, RouterProvider } from "react-router-dom";
 import "./App.css";
 import { PadRoute } from "./Pad";
 
-// init matrix client
-export const ClientContext = createContext<MatrixClient | null>(null);
+const ClientOptsContext = createContext<ICreateClientOpts | null>(null);
 
-export const useClientContext = () => {
-  const client = useContext(ClientContext);
-  if (!client) {
+export const useClientOpts = (): ICreateClientOpts => {
+  const opts = useContext(ClientOptsContext);
+  if (!opts) {
     throw new Error(
-      "useClientContext must be used within a ClientContext.Provider"
+      "useClientOpts must be used within a ClientOptsContext.Provider"
     );
   }
-  return client;
+  return opts;
 };
 
 const router = createBrowserRouter([
@@ -33,45 +32,25 @@ const router = createBrowserRouter([
 ]);
 
 function App() {
-  const [clientStatus, setClientStatus] = useState<
-    "logged-out" | "syncing" | "ready"
-  >("logged-out");
-  const [client, setClient] = useState<MatrixClient | null>(null);
+  const [clientOpts, setClientOpts] = useState<ICreateClientOpts | null>(null);
 
-  if (client == null) {
+  if (clientOpts == null) {
     return (
       <Login
-        onLoginSuccess={async (client) => {
+        onLoginSuccess={async (opts) => {
           console.debug("login successful");
-          client.once(ClientEvent.Sync, function (state, prevState, res) {
-            console.log("Matrix client state changed:", state);
-            if (state === "PREPARED") {
-              setClientStatus("ready");
-            }
-          });
-          setClient((prev) => {
-            if (prev) {
-              client.stopClient();
-              return prev;
-            }
-            return client;
-          });
-          setClientStatus("syncing");
+          setClientOpts(opts);
         }}
       />
     );
   }
 
-  if (clientStatus !== "ready") {
-    return <p>Loading...</p>;
-  }
-
   return (
-    <ClientContext.Provider value={client}>
+    <ClientOptsContext.Provider value={clientOpts}>
       <div className="App">
         <RouterProvider router={router} />
       </div>
-    </ClientContext.Provider>
+    </ClientOptsContext.Provider>
   );
 }
 

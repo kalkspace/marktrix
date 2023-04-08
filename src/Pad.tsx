@@ -3,24 +3,28 @@ import Editor, { OnMount } from "@monaco-editor/react";
 import { useParams } from "react-router-dom";
 import { Doc as YDoc, Text as YText } from "yjs";
 import { MonacoBinding } from "y-monaco";
-import { useClientContext } from "./App";
+import { useClientOpts } from "./App";
 import { MatrixProvider } from "./provider";
+import { createClient } from "matrix-js-sdk";
 
 export const Pad: React.FC<{ roomId: string }> = ({ roomId }) => {
   const [yText, setYText] = useState<YText | null>(null);
 
-  const client = useClientContext();
+  const clientOpts = useClientOpts();
   // todo: does it race when `roomId` changes?
   useEffect(() => {
     const doc = new YDoc();
+    const client = createClient(clientOpts);
     const provider = new MatrixProvider(doc, client, roomId);
 
-    setYText(doc.getText("monaco"));
+    provider.initialize().then(() => {
+      setYText(doc.getText("monaco"));
+    });
 
     return () => {
       provider.destroy();
     };
-  }, [client, roomId]);
+  }, [clientOpts, roomId]);
 
   const mountHandler = useCallback<OnMount>(
     (editor) => {

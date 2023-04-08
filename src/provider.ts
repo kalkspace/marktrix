@@ -41,6 +41,7 @@ export class MatrixProvider {
   private debounceTimeout: number | null = null;
   private sendTimeout: number | null = null;
   private currentBatch: Uint8Array[] = [];
+  private initPromise: Promise<void>;
 
   constructor(
     private doc: YDoc,
@@ -49,6 +50,31 @@ export class MatrixProvider {
   ) {
     doc.on("update", this.handleDocUpdate);
     client.on(ClientEvent.Event, this.handleMatrixEvent);
+
+    this.initPromise = (async () => {
+      const filter = await client.createFilter({
+        room: {
+          rooms: [roomId],
+          timeline: {
+            types: [EVENT_TYPE_UPDATE],
+          },
+        },
+      });
+
+      await client.startClient({ filter, lazyLoadMembers: true });
+      await new Promise<void>((resolve) => {
+        client.once(ClientEvent.Sync, (state) => {
+          console.debug("Matrix client state changed:", state);
+          if (state === "PREPARED") {
+            resolve();
+          }
+        });
+      });
+    })();
+  }
+
+  initialize(): Promise<void> {
+    return this.initPromise;
   }
 
   private handleMatrixEvent = async (e: MatrixEvent) => {
@@ -65,9 +91,9 @@ export class MatrixProvider {
 
     const content: EventPayload = e.getContent();
     const sender = e.getSender();
-    console.log("received update from peer", { content, sender });
 
     const update = await fromBase64(content.update);
+
     applyUpdate(this.doc, update, this);
   };
 
@@ -75,6 +101,7 @@ export class MatrixProvider {
     if (origin === this) {
       return;
     }
+    console.debug("got doc update");
 
     if (this.currentBatch.length === 0) {
       if (this.sendTimeout) {
@@ -113,5 +140,6 @@ export class MatrixProvider {
   destroy() {
     this.client.off(ClientEvent.Event, this.handleMatrixEvent);
     this.doc.off("update", this.handleDocUpdate);
+    this.client.stopClient();
   }
 }
