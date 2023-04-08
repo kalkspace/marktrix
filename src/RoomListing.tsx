@@ -1,7 +1,8 @@
 import React, { useEffect, useState } from "react";
 import { useClientOpts } from "./App";
-import { Room, createClient } from "matrix-js-sdk";
+import { ClientEvent, Room, createClient } from "matrix-js-sdk";
 import { Link } from "react-router-dom";
+import { SyncState } from "matrix-js-sdk/lib/sync";
 
 export const RoomListing: React.FC<{}> = () => {
   const clientOpts = useClientOpts();
@@ -21,6 +22,15 @@ export const RoomListing: React.FC<{}> = () => {
         },
       });
       await client.startClient({ filter });
+      await new Promise<void>((resolve) => {
+        const handler = (state: SyncState) => {
+          if (state === SyncState.Prepared) {
+            resolve();
+            client.off(ClientEvent.Sync, handler);
+          }
+        };
+        client.on(ClientEvent.Sync, handler);
+      });
       const rooms = client.getVisibleRooms();
       setRooms(rooms);
     })();
