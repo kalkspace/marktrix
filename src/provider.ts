@@ -5,9 +5,6 @@ import {
   MatrixEvent,
 } from "matrix-js-sdk";
 import { Doc as YDoc, applyUpdate, mergeUpdates } from "yjs";
-import { Observable } from "lib0/observable";
-
-type Events = "loaded";
 
 const EVENT_TYPE_UPDATE = "kalkspace.marktrix.update";
 const DEBOUNCE_TIME = 300;
@@ -39,7 +36,7 @@ interface EventPayload {
   update: string;
 }
 
-export class MatrixProvider extends Observable<Events> {
+export class MatrixProvider {
   private sentUpdates = new Set<string>();
   private debounceTimeout: number | null = null;
   private sendTimeout: number | null = null;
@@ -50,7 +47,6 @@ export class MatrixProvider extends Observable<Events> {
     private client: MatrixClient,
     private roomId: string
   ) {
-    super();
     doc.on("update", this.handleDocUpdate);
     client.on(ClientEvent.Event, this.handleMatrixEvent);
   }
