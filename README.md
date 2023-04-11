@@ -17,7 +17,7 @@ The toolchain uses [Vite](https://vitejs.dev/) with [SWC](https://github.com/vit
 
 The current demo only implements password-based login. If you don't trust the Demo we'd suggest using a throwaway Matrix account for the time being.
 
-We plan to evenetually implement [OAuth 2.0 dynamic client registration](https://github.com/matrix-org/matrix-spec-proposals/pull/2966) so that you can use OAuth with whatever homeserver. Currently the MSC is pending and is waiting for implementation.
+We plan to eventually implement [OAuth 2.0 dynamic client registration](https://github.com/matrix-org/matrix-spec-proposals/pull/2966) so that you can use OAuth with whatever homeserver. Currently the MSC is pending and is waiting for implementation.
 
 ## License
 
